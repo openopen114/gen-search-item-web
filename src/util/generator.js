@@ -10,14 +10,16 @@ export const ignoreColumnName = [
   "LAST_MODIFIED",
   "LAST_MODIFY_USER",
   "TS",
-  "DR"
+  "DR",
+  "TENANT_ID"
 ];
 
 
 
 export const genSearchItem = _state => {
   console.log('gen seatch item');
-  const { tableSchema } = _state;
+  const { tableSchema, projectName } = _state;
+  console.log(projectName)
 
 
   let result = "";
@@ -34,81 +36,96 @@ export const genSearchItem = _state => {
          switch(searchItem){
             case 'none': 
               result += `
+
                     <Col md={4} xs={6}>
                         <FormItem>
-                            <Label>${colName}</Label>
-                            <FormControl placeholder='' {...getFieldProps('${colName}', {initialValue: ''})}/>
+                            <Label>{<FormattedMessage id="js.${projectName}.search.00XX" defaultMessage="${colName}"/>}</Label>
+                            <FormControl placeholder={this.props.intl.formatMessage({id:"js.${projectName}.search.placeholder.00XX", defaultMessage:'精确查询'})} {...getFieldProps('${colName}', { initialValue: '' })} />
                         </FormItem>
-                    </Col>
+                    </Col> 
               `
               break;
 
              case 'Ref': 
               result += ` 
+
                     <Col md={4} xs={6}>
-                        <FormItem>
-                            <Label>${colName}</Label>
-                            <Ref${_.upperFirst(colName)} {...getFieldProps('${colName}', {initialValue: ''})}/>
+                        <FormItem >
+                            <Label>{<FormattedMessage id="js.${projectName}.search.00XX" defaultMessage="${colName}"/>}</Label>
+                            <Ref${_.upperFirst(colName)}
+                                placeholder={this.props.intl.formatMessage({id:"js.${projectName}.search.placeholder.00XX", defaultMessage:'選擇${colName}'})}
+                                {...getFieldProps('${colName}', { initialValue: '' })} 
+                            />
                         </FormItem>
-                    </Col>
+                    </Col> 
               `
               break;  
 
 
              case 'InputNumber': 
               result += `  
+
                     <Col md={4} xs={6}>
                         <FormItem className="time">
-                            <Label>${colName}</Label>
+                            <Label>{<FormattedMessage id="js.${projectName}.search.00XX" defaultMessage="${colName}"/>}≥</Label>
                             <InputNumber min={0} iconStyle="one"
                                          {...getFieldProps('${colName}', {
                                              initialValue: "",
                                          })}
                             />
                         </FormItem>
-                    </Col>
+                    </Col> 
               `
               break; 
 
              case 'YearPicker': 
               result += `   
+ 
+
                     <Col md={4} xs={6}>
                         <FormItem className="time">
-                            <Label>年份</Label>
+                            <Label>{<FormattedMessage id="js.${projectName}.search.00XX" defaultMessage="年份"/>}</Label>
                             <YearPicker
                                 {...getFieldProps('${colName}', {initialValue: ''})}
                                 format="YYYY"
                                 locale={zhCN}
-                                placeholder="選擇年"
+                                placeholder={this.props.intl.formatMessage({id:"js.search.sel1.0001", defaultMessage:'選擇年'})}
                             />
                         </FormItem>
                     </Col>
+
+
+ 
               `
               break; 
 
 
               case 'SelectMonth': 
               result += `   
+
                     <Col md={4} xs={6}>
                         <FormItem>
-                            <Label>月份</Label>
-                            <SelectMonth {...getFieldProps('${colName}', {initialValue: ''})} />
+                            <Label>{<FormattedMessage id="js.${projectName}.search.00XX" defaultMessage="月份"/>}</Label>
+                            <SelectMonth  {...getFieldProps('${colName}', { initialValue: '' })} />
                         </FormItem>
                     </Col>
+ 
               `
               break; 
               case 'Select': 
-              result += `   
+              result += `  
+
                     <Col md={4} xs={6}>
                         <FormItem>
-                            <Label>${colName}</Label>
-                            <Select {...getFieldProps('${colName}', {initialValue: ''})}>
-                                <Option value="">请选择</Option>
-                                <Option value="0">0</Option>
-                                <Option value="1">1</Option>
+                            <Label>{<FormattedMessage id="js.${projectName}.search.0006" defaultMessage="${colName}"/>}</Label>
+                            <Select {...getFieldProps('${colName}', { initialValue: '' })}>
+                                <Option value="">{<FormattedMessage id="js.${projectName}.search.sel.00XX" defaultMessage="請選擇"/>}</Option>
+                                <Option value="0">{<FormattedMessage id="js.${projectName}.search.sel.00XX" defaultMessage="0"/>}</Option>
+                                <Option value="1">{<FormattedMessage id="js.${projectName}.search.sel.00XX" defaultMessage="1"/>}</Option>
                             </Select>
                         </FormItem>
-                    </Col>
+                    </Col> 
+ 
               `
               break; 
 
@@ -155,15 +172,18 @@ export const formatTableSchemaToArray = _tableSchema => {
 // Set Seeting Config For Setting Comp Data
 export const formateConfigParam = _data => {
   const packageName = _.toLower(_data.packageName);
-  const projectName = _.upperFirst(_.camelCase(_data.projectName));
+  const projectName = _data.projectName;
   const tableName = _data.tableName;
   let tableSchema = _data.tableSchema;
 
   let map = new Map();
 
-  map.set("VAR", "String");
-  map.set("DEC", "Double");
-  map.set("INT", "Integer");
+  map.set("VAR", "String");//VARCHAR
+  map.set("DEC", "Double");//DECIMAL
+  map.set("INT", "Integer");//INT
+  map.set("NVA", "String");//NVARCHAR
+  map.set("CHA", "String");//CHAR
+ 
 
   const tableSchemaArray = formatTableSchemaToArray(tableSchema);
 
@@ -172,11 +192,11 @@ export const formateConfigParam = _data => {
   for (let i = 0; i < tableSchemaArray.length; i += 2) {
     let obj = {};
     obj.columnName = tableSchemaArray[i];
-    obj.type = map.get(_.toUpper(tableSchemaArray[i + 1]).substring(0, 3));
+    obj.type = map.get(_.replace(tableSchemaArray[i + 1], 'TYPE_', '').trim().substring(0, 3)) ? map.get(_.replace(tableSchemaArray[i + 1], 'TYPE_', '').trim().substring(0, 3)) : 'String';
     obj.key = tableSchemaArray[i];
 
     tableSchema.push(obj);
   }
 
-  return { packageName, projectName, tableName, tableSchema };
+  return { projectName,  tableSchema };
 };

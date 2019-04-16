@@ -50,6 +50,16 @@ const SettingArea = hocProps => {
             })(<TextArea rows={10} />)}
           </Form.Item>
 
+          {/* # Project Name */}
+          <Form.Item label="# Project Name">
+            {getFieldDecorator("projectName", {
+              rules: [
+                { required: true, message: "Please input your Project Name!" }
+              ]
+            })(<Input placeholder="project name" />)}
+          </Form.Item>
+
+
           {/* Submit Button  */}
           <Form.Item>
             <Button
